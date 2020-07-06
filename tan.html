@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇</title>
+    <style>
+      
+    </style>
+</head>
+<body>
+    <script>
+        // 地图
+        (function(){
+          function MapG(width,height,bgColor){
+             this.width = width
+             this.height = height
+             this.background = bgColor
+          }
+          MapG.prototype.init = function(){
+              let MapDiv = document.createElement('div')
+              MapDiv.style.width = this.width+'px'
+              MapDiv.style.height = this.height+'px'
+              MapDiv.style.background = this.background
+              MapDiv.style.position = 'relative'
+              MapDiv.id = 'MapDiv'
+              document.body.appendChild(MapDiv)
+             
+          }
+          window.MapG = MapG
+        })();
+
+        // 食物
+
+        (function(){
+           let oldFood = [];
+          function Food(width,height,bgColor){
+             this.width = width
+             this.height = height
+             this.background = bgColor
+             this.x = 0
+             this.y = 0
+             
+          }
+          Food.prototype.init = function(){
+             remove();
+             let FoodDiv = document.createElement('div')
+             let MapDiv = document.getElementById('MapDiv')
+             FoodDiv.style.width = this.width+'px'
+             FoodDiv.style.height = this.height+'px'
+             FoodDiv.style.background = this.background
+             FoodDiv.style.position = 'absolute'
+             this.x = parseInt(Math.random()*MapDiv.offsetWidth/this.width)
+             this.y = parseInt(Math.random()*MapDiv.offsetHeight/this.height)
+             FoodDiv.style.left = this.x*this.width+'px'
+             FoodDiv.style.top = this.y*this.height+'px'
+             MapDiv.appendChild(FoodDiv)
+             oldFood.push(FoodDiv)
+             
+          } 
+          function remove(){
+					for (var i = 0; i < oldFood.length; i++) {
+						MapDiv.removeChild(oldFood[i]);
+					}
+					//清空数组
+					oldFood = [];
+				}
+          window.Food = Food
+        })();
+        
+        // 蛇
+        (function(){
+           let oldSnake = []
+          function Snake(width,height,dir){
+            this.width = width
+            this.height = height
+            this.dir = dir
+            this.snakeS = [{x:3,y:2,bgColor:'red'},{x:2,y:2,bgColor:'blue'},{x:1,y:2,bgColor:'yellow'}]
+          }
+        //    初始蛇
+          Snake.prototype.init = function(){
+            remove()
+             for (const key in this.snakeS) {
+                 let snakeS = this.snakeS
+              let SnakeDiv = document.createElement('div')
+              let MapDiv = document.getElementById('MapDiv')
+              SnakeDiv.style.width=this.width+'px'
+              SnakeDiv.style.height=this.height+'px'
+              SnakeDiv.style.background=snakeS[key].bgColor
+              SnakeDiv.style.position = 'absolute'
+              SnakeDiv.style.left =snakeS[key].x*this.width +'px'
+              SnakeDiv.style.top =snakeS[key].y*this.height +'px'
+              MapDiv.appendChild(SnakeDiv)
+              oldSnake.push(SnakeDiv)
+             }
+          }
+          //移动蛇
+          Snake.prototype.move= function (){
+            let MapDiv = document.getElementById('MapDiv')
+            for (let i = this.snakeS.length-1; i > 0; i--) {
+                this.snakeS[i].x = this.snakeS[i-1].x
+                this.snakeS[i].y = this.snakeS[i-1].y
+                
+            }
+            switch (this.dir) {
+                case 'right': this.snakeS[0].x+=1
+                    
+                    break;
+                case 'top': this.snakeS[0].y-=1
+                    
+                    break;
+                case 'left': this.snakeS[0].x-=1
+                    
+                    break;
+                case 'bottom': this.snakeS[0].y+=1
+                    
+                    break;
+            }
+       
+            document.onkeydown=e=>{
+              switch (e.keyCode) {
+                  case 37:this.dir = 'left'
+                      
+                      break;
+                  case 38:this.dir = 'top'
+                      
+                      break;
+                  case 39:this.dir = 'right'
+                      
+                      break;
+                  case 40:this.dir = 'bottom'
+                      
+                      break;
+                  
+              }
+            }
+          }
+          function remove(){
+            let MapDiv = document.getElementById('MapDiv')
+               for (let i = 0; i < oldSnake.length; i++) {
+                MapDiv.removeChild(oldSnake[i])  
+               }
+               oldSnake=[]
+           }
+          
+          window.Snake = Snake
+        })();
+
+       //游戏规则
+       (function(){
+           function Game(){
+            this.mapg = new MapG(800,600,'#ccc')
+            this.mapg.init()
+            this.food = new Food(20,20,'pink')
+            this.food.init()
+            this.snake = new Snake(20,20,'right')
+            this.snake.init()
+           }
+           window.Game = Game
+           Game.prototype.rules = function () {
+            this.timerId = null
+            this.timerId=setInterval(() => {
+            let MapDiv = document.getElementById('MapDiv')
+            this.snake.move()
+            this.snake.init()
+            
+            if(this.snake.snakeS[0].x<0 || (this.snake.snakeS[0].x>=MapDiv.offsetWidth/this.snake.width)||this.snake.snakeS[0].y<0||this.snake.snakeS[0].y>=MapDiv.offsetHeight/this.snake.height){
+                 clearInterval(this.timerId)
+                 let restDiv = document.createElement('div')
+                 restDiv.style.width = '480px'
+                 restDiv.style.height = '250px'
+                 restDiv.style.background = 'rgba(255,0,0,.5)'
+                 restDiv.style.position = 'absolute'
+                 restDiv.style.left = '50%'
+                 restDiv.style.top = '50%'
+                 restDiv.style.marginLeft = '-240px'
+                 restDiv.style.marginTop = '-125px'
+                 document.body.appendChild(restDiv)
+                 let btn = document.createElement('button')
+                 btn.innerHTML = '重玩游戏'
+                 restDiv.appendChild(btn)
+                 btn.onclick = ()=>{
+                    window.location.reload();
+                 }   
+            }
+
+            //吃食物长尾巴
+             
+             if(this.snake.snakeS[0].x==this.food.x && this.snake.snakeS[0].y==this.food.y){
+                 this.food.init()
+                 let color = ['greenyellow','yellowgreen','yellow','green','#f40','#000','pink','orangered']
+                 let num = parseInt(Math.random()*color.length)
+                 let obj = {
+                     x:0,
+                     y:0,
+                     bgColor:color[num]
+                 }
+                 this.snake.snakeS.push(obj)
+             }
+        }, 150);
+           }
+       })()
+       let game = new Game()
+       game.rules()
+
+        
+    </script>
+</body>
+</html>
